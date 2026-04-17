@@ -101,9 +101,10 @@ def get_dataloaders(config: dict, root: str = "./data/qm9_raw"):
     for d in val_data:   d.y = normalizer.normalize(d.y)
     for d in test_data:  d.y = normalizer.normalize(d.y)
 
-    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True,  num_workers=2)
-    val_loader   = DataLoader(val_data,   batch_size=batch_size, shuffle=False, num_workers=2)
-    test_loader  = DataLoader(test_data,  batch_size=batch_size, shuffle=False, num_workers=2)
+    num_workers = config.get("dataset", {}).get("num_workers", 0)
+    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True,  num_workers=num_workers)
+    val_loader   = DataLoader(val_data,   batch_size=batch_size, shuffle=False, num_workers=num_workers)
+    test_loader  = DataLoader(test_data,  batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
     print(f"[loader] Split sizes — train: {len(train_data)}, val: {len(val_data)}, test: {len(test_data)}")
 
