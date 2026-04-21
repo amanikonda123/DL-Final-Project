@@ -25,21 +25,27 @@ class GCN(nn.Module):
         super().__init__()
 
         self.convs = nn.ModuleList()
+        self.bns = nn.ModuleList()
         self.convs.append(GCNConv(node_dim, hidden_dim))
+        self.bns.append(nn.BatchNorm1d(hidden_dim))
         for _ in range(num_layers - 1):
             self.convs.append(GCNConv(hidden_dim, hidden_dim))
+            self.bns.append(nn.BatchNorm1d(hidden_dim))
 
         self.head = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim),
+            nn.BatchNorm1d(hidden_dim),
             nn.ReLU(),
+            nn.Dropout(dropout),
             nn.Linear(hidden_dim, 1),
         )
 
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x, edge_index, batch):
-        for conv in self.convs:
+        for i, (conv, bn) in enumerate(zip(self.convs, self.bns)):
             x = conv(x, edge_index)
+            x = bn(x)
             x = torch.relu(x)
             x = self.dropout(x)
 
