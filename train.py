@@ -2,9 +2,10 @@
 train.py
 --------
 Training loop for GNN models on QM9.
-Can be run standalone (reads config/default.yaml) or called from a notebook.
+Can be run standalone with a chosen config/model or called from a notebook.
 """
 
+import argparse
 import os
 import csv
 import copy
@@ -153,15 +154,32 @@ def train_model(config, device="cpu", output_dir="outputs", data_root="./data/qm
     }
 
 
+def _get_default_device():
+    if torch.cuda.is_available():
+        return "cuda"
+    if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+
 if __name__ == "__main__":
-    with open("config/default.yaml") as f:
+    parser = argparse.ArgumentParser(description="Train a topology-based QM9 GNN.")
+    parser.add_argument("--config", default="config/gcn.yaml", help="Path to YAML config file.")
+    parser.add_argument("--model", default="gcn", help="Model name registered in models.build_model.")
+    parser.add_argument("--device", default=None, help="Override device: cpu, cuda, or mps.")
+    parser.add_argument("--output-dir", default="outputs", help="Directory for logs/checkpoints.")
+    parser.add_argument("--data-root", default="./data/qm9_raw", help="Directory for QM9 cache.")
+    args = parser.parse_args()
+
+    with open(args.config) as f:
         cfg = yaml.safe_load(f)
 
-    if torch.cuda.is_available():
-        device = "cuda"
-    elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
-        device = "mps"
-    else:
-        device = "cpu"
-    result = train_model(cfg, device=device)
+    device = args.device or _get_default_device()
+    result = train_model(
+        cfg,
+        device=device,
+        output_dir=args.output_dir,
+        data_root=args.data_root,
+        model_name=args.model,
+    )
     print(f"\nDone. Best val MAE = {result['best_val_mae']:.6f}")

@@ -1,0 +1,22 @@
+dataset:
+  target: 7
+  split: [0.8, 0.1, 0.1]
+  seed: 42
+  feature_mode: geometry
+
+training:
+  epochs: 200
+  batch_size: 32
+  lr: 5.0e-4
+  scheduler: cosine
+  patience: 20
+
+model:
+  hidden_channels: 128   # embedding/filter size
+  num_interactions: 6    # number of interaction blocks (depth)
+  num_filters: 128       # filters in continuous-filter convolution
+  num_gaussians: 50      # RBF basis functions for distance encoding
+  cutoff: 10.0           # angstrom radius for neighbor graph
+  max_num_neighbors: 32
+  readout: add
+  dipole: false

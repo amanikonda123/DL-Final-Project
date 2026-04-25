@@ -50,7 +50,10 @@ def evaluate_model(config, checkpoint_path, device="cpu", output_dir="outputs",
             batch = select_features(batch, feature_mode)
             batch = batch.to(device)
 
-            pred = model(batch.x, batch.edge_index, batch.batch)
+            if model_name == "schnet":
+                pred = model(batch.z, batch.pos, batch.batch)
+            else:
+                pred = model(batch.x, batch.edge_index, batch.batch)
 
             all_preds.append(normalizer.denormalize(pred.cpu()))
             all_targets.append(normalizer.denormalize(batch.y.cpu()))
