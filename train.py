@@ -1,8 +1,8 @@
 """
 train.py
 --------
-Training loop for GNN models on QM9.
-Can be run standalone with a chosen config/model or called from a notebook.
+Unified training entry point for all GNN models on QM9.
+Supports GCN, GAT, and SchNet from a single script.
 """
 
 import argparse
@@ -20,21 +20,25 @@ from models import build_model
 from utils.metrics import mae
 
 
-def _run_epoch(model, loader, optimizer, device, normalizer, feature_mode, train=True):
-    """Run one epoch of training or validation."""
+def _run_epoch(model, loader, optimizer, device, normalizer, feature_mode, model_name, train=True):
     model.train() if train else model.eval()
 
     total_loss = 0.0
     all_preds, all_targets = [], []
 
-    ctx = torch.no_grad() if not train else torch.enable_grad()
+    ctx = torch.enable_grad() if train else torch.no_grad()
     with ctx:
         for batch in loader:
             batch = select_features(batch, feature_mode)
             batch = batch.to(device)
 
-            pred = model(batch.x, batch.edge_index, batch.batch)
-            loss = F.mse_loss(pred, batch.y)
+            if model_name == "schnet":
+                pred = model(batch.z, batch.pos, batch.batch)
+            else:
+                pred = model(batch.x, batch.edge_index, batch.batch)
+
+            target = batch.y.view(-1)
+            loss = F.mse_loss(pred, target)
 
             if train:
                 optimizer.zero_grad()
@@ -42,30 +46,29 @@ def _run_epoch(model, loader, optimizer, device, normalizer, feature_mode, train
                 optimizer.step()
 
             total_loss += loss.item() * batch.num_graphs
-
             all_preds.append(normalizer.denormalize(pred.detach().cpu()))
-            all_targets.append(normalizer.denormalize(batch.y.detach().cpu()))
+            all_targets.append(normalizer.denormalize(target.detach().cpu()))
 
     n = sum(t.size(0) for t in all_targets)
     avg_loss = total_loss / n
-    val_mae = mae(torch.cat(all_preds), torch.cat(all_targets))
-    return avg_loss, val_mae
+    epoch_mae = mae(torch.cat(all_preds), torch.cat(all_targets))
+    return avg_loss, epoch_mae
 
 
 def train_model(config, device="cpu", output_dir="outputs", data_root="./data/qm9_raw",
                 model_name="gcn"):
     """
-    Full training run.
+    Train any registered GNN model on QM9.
 
     Args:
         config:     dict with dataset/training/model keys
-        device:     "cpu" or "cuda"
+        device:     "cpu", "cuda", or "mps"
         output_dir: root for checkpoints and logs
         data_root:  where to store/load QM9 raw data
-        model_name: architecture key passed to build_model
+        model_name: one of "gcn", "gat", "schnet"
 
     Returns:
-        dict with best_val_mae, history (list of dicts), and model state_dict path
+        dict with best_val_mae, history, and checkpoint path
     """
     device = torch.device(device)
 
@@ -91,7 +94,7 @@ def train_model(config, device="cpu", output_dir="outputs", data_root="./data/qm
     os.makedirs(f"{output_dir}/logs", exist_ok=True)
 
     ckpt_path = f"{output_dir}/checkpoints/{model_name}_best.pt"
-    log_path = f"{output_dir}/logs/{model_name}_history.csv"
+    log_path  = f"{output_dir}/logs/{model_name}_history.csv"
 
     best_val_mae = float("inf")
     best_state = None
@@ -105,11 +108,11 @@ def train_model(config, device="cpu", output_dir="outputs", data_root="./data/qm
 
     pbar = tqdm(range(1, tcfg["epochs"] + 1), desc=f"Training {model_name}")
     for epoch in pbar:
-        train_loss, train_mae = _run_epoch(
-            model, train_loader, optimizer, device, normalizer, feature_mode, train=True
+        train_loss, _ = _run_epoch(
+            model, train_loader, optimizer, device, normalizer, feature_mode, model_name, train=True
         )
         val_loss, val_mae_epoch = _run_epoch(
-            model, val_loader, None, device, normalizer, feature_mode, train=False
+            model, val_loader, None, device, normalizer, feature_mode, model_name, train=False
         )
 
         current_lr = optimizer.param_groups[0]["lr"]
@@ -117,11 +120,11 @@ def train_model(config, device="cpu", output_dir="outputs", data_root="./data/qm
             scheduler.step()
 
         row = {
-            "epoch": epoch,
+            "epoch":      epoch,
             "train_loss": f"{train_loss:.6f}",
-            "val_loss": f"{val_loss:.6f}",
-            "val_mae": f"{val_mae_epoch:.6f}",
-            "lr": f"{current_lr:.2e}",
+            "val_loss":   f"{val_loss:.6f}",
+            "val_mae":    f"{val_mae_epoch:.6f}",
+            "lr":         f"{current_lr:.2e}",
         }
         history.append(row)
 
@@ -149,8 +152,8 @@ def train_model(config, device="cpu", output_dir="outputs", data_root="./data/qm
 
     return {
         "best_val_mae": best_val_mae,
-        "history": history,
-        "checkpoint": ckpt_path,
+        "history":      history,
+        "checkpoint":   ckpt_path,
     }
 
 
@@ -163,23 +166,19 @@ def _get_default_device():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Train a topology-based QM9 GNN.")
+    parser = argparse.ArgumentParser(description="Train a GNN model on QM9.")
     parser.add_argument("--config", default="config/gcn.yaml", help="Path to YAML config file.")
-    parser.add_argument("--model", default="gcn", help="Model name registered in models.build_model.")
-    parser.add_argument("--device", default=None, help="Override device: cpu, cuda, or mps.")
+    parser.add_argument("--model",  default="gcn", choices=["gcn", "gat", "schnet"],
+                        help="Model architecture to train.")
+    parser.add_argument("--device",     default=None,      help="Override device: cpu, cuda, or mps.")
     parser.add_argument("--output-dir", default="outputs", help="Directory for logs/checkpoints.")
-    parser.add_argument("--data-root", default="./data/qm9_raw", help="Directory for QM9 cache.")
+    parser.add_argument("--data-root",  default="./data/qm9_raw", help="Directory for QM9 cache.")
     args = parser.parse_args()
 
     with open(args.config) as f:
         cfg = yaml.safe_load(f)
 
     device = args.device or _get_default_device()
-    result = train_model(
-        cfg,
-        device=device,
-        output_dir=args.output_dir,
-        data_root=args.data_root,
-        model_name=args.model,
-    )
+    result = train_model(cfg, device=device, output_dir=args.output_dir,
+                         data_root=args.data_root, model_name=args.model)
     print(f"\nDone. Best val MAE = {result['best_val_mae']:.6f}")
