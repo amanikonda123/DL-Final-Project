@@ -6,6 +6,7 @@ Model factory — instantiate any registered architecture by name string.
 
 import torch.nn as nn
 from .gcn import GCN
+from .gat import GAT
 from .schnet import QM9SchNet
 
 
@@ -31,6 +32,15 @@ def build_model(name: str, config: dict, feature_dims: dict) -> nn.Module:
             dropout=mcfg.get("dropout", 0.0),
         )
 
+    if name == "gat":
+        return GAT(
+            node_dim=feature_dims["node_dim"],
+            hidden_dim=mcfg["hidden_dim"],
+            num_layers=mcfg["num_layers"],
+            heads=mcfg.get("heads", 4),
+            dropout=mcfg.get("dropout", 0.0),
+        )
+
     if name == "schnet":
         target_idx = config["dataset"]["target"]
         return QM9SchNet(
@@ -44,4 +54,4 @@ def build_model(name: str, config: dict, feature_dims: dict) -> nn.Module:
             dipole=mcfg.get("dipole", target_idx == 0),
         )
 
-    raise ValueError(f"Unknown model: '{name}'. Available: gcn, schnet")
+    raise ValueError(f"Unknown model: '{name}'. Available: gcn, gat, schnet")

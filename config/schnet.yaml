@@ -12,11 +12,11 @@ training:
   patience: 20
 
 model:
-  hidden_dim: 128
-  num_layers: 6
-  num_filters: 128
-  num_gaussians: 50
-  cutoff: 10.0
+  hidden_channels: 128   # embedding/filter size
+  num_interactions: 6    # number of interaction blocks (depth)
+  num_filters: 128       # filters in continuous-filter convolution
+  num_gaussians: 50      # RBF basis functions for distance encoding
+  cutoff: 10.0           # angstrom radius for neighbor graph
   max_num_neighbors: 32
   readout: add
   dipole: false
