@@ -1,0 +1,15 @@
+# Python cache artifacts
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+
+# PyTorch Geometric QM9 dataset cache
+data/qm9_raw/
+
+# Generated training artifacts
+outputs/checkpoints/
+outputs/logs/
+outputs/results/
