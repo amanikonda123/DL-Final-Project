@@ -1,0 +1,20 @@
+dataset:
+  target: 7
+  split: [0.8, 0.1, 0.1]
+  seed: 42
+  feature_mode: topology        # keeps node [N,5] and edge_attr [E,4] — both used by GATv2
+
+training:
+  epochs: 200
+  batch_size: 32
+  lr: 1.0e-3
+  scheduler: cosine
+  patience: 20
+
+model:
+  hidden_dim: 128
+  num_layers: 4
+  dropout: 0.1                  # GATv2 has more parameters than GAT — light dropout helps
+  heads: 4
+  edge_dim: 4                   # must match edge_attr width from feature_mode=topology
+  share_weights: false          # W_l and W_r kept separate — full GATv2 formulation
