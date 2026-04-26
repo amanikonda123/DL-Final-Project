@@ -56,7 +56,7 @@ def _run_epoch(model, loader, optimizer, device, normalizer, feature_mode, model
 
 
 def train_model(config, device="cpu", output_dir="outputs", data_root="./data/qm9_raw",
-                model_name="gcn"):
+                model_name="gcn", loaders=None):
     """
     Train any registered GNN model on QM9.
 
@@ -75,7 +75,10 @@ def train_model(config, device="cpu", output_dir="outputs", data_root="./data/qm
     feature_mode = config["dataset"].get("feature_mode", "topology")
     feature_dims = get_feature_dims(feature_mode)
 
-    train_loader, val_loader, _, normalizer = get_dataloaders(config, root=data_root)
+    if loaders is not None:
+        train_loader, val_loader, normalizer = loaders
+    else:
+        train_loader, val_loader, _, normalizer = get_dataloaders(config, root=data_root)
 
     model = build_model(model_name, config, feature_dims).to(device)
     param_count = sum(p.numel() for p in model.parameters() if p.requires_grad)
