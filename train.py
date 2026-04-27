@@ -34,6 +34,8 @@ def _run_epoch(model, loader, optimizer, device, normalizer, feature_mode, model
 
             if model_name == "schnet":
                 pred = model(batch.z, batch.pos, batch.batch)
+            elif model_name == "gatv2":
+                pred = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch)
             else:
                 pred = model(batch.x, batch.edge_index, batch.batch)
 
@@ -176,7 +178,7 @@ def _get_default_device():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train a GNN model on QM9.")
     parser.add_argument("--config", default="config/gcn.yaml", help="Path to YAML config file.")
-    parser.add_argument("--model",  default="gcn", choices=["gcn", "gat", "schnet"],
+    parser.add_argument("--model",  default="gcn", choices=["gcn", "gat", "gatv2", "schnet"],
                         help="Model architecture to train.")
     parser.add_argument("--device",     default=None,      help="Override device: cpu, cuda, or mps.")
     parser.add_argument("--output-dir", default="outputs", help="Directory for logs/checkpoints.")
