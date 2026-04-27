@@ -34,6 +34,8 @@ def _run_epoch(model, loader, optimizer, device, normalizer, feature_mode, model
 
             if model_name == "schnet":
                 pred = model(batch.z, batch.pos, batch.batch)
+            elif model_name == "gatv2":
+                pred = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch)
             else:
                 pred = model(batch.x, batch.edge_index, batch.batch)
 
