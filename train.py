@@ -72,6 +72,11 @@ def train_model(config, device="cpu", output_dir="outputs", data_root="./data/qm
     """
     device = torch.device(device)
 
+    # torch_cluster's radius_graph (used by SchNet) does not support MPS
+    if model_name == "schnet" and device.type == "mps":
+        print("[train] Warning: torch_cluster does not support MPS — falling back to CPU for SchNet.")
+        device = torch.device("cpu")
+
     feature_mode = config["dataset"].get("feature_mode", "topology")
     feature_dims = get_feature_dims(feature_mode)
 
