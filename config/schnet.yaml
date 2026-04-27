@@ -5,18 +5,18 @@ dataset:
   feature_mode: geometry
 
 training:
-  epochs: 30           # increase to 200 on Colab
+  epochs: 100
   batch_size: 32
   lr: 5.0e-4
   scheduler: cosine
   patience: 20
 
 model:
-  hidden_channels: 128   # embedding/filter size — keep at 128
-  num_interactions: 6    # increase to 6 on Colab
+  hidden_channels: 128
+  num_interactions: 6
   num_filters: 128
-  num_gaussians: 50      # physics-motivated, don't tune
-  cutoff: 10.0           # angstrom, don't tune
+  num_gaussians: 50
+  cutoff: 10.0
   max_num_neighbors: 32
   readout: add
   dipole: false
