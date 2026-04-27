@@ -5,9 +5,9 @@ dataset:
   feature_mode: topology        # keeps node [N,5] and edge_attr [E,4] — both used by GATv2
 
 training:
-  epochs: 50
-  batch_size: 64
-  lr: 1.0e-2
+  epochs: 2000
+  batch_size: 128
+  lr: 1.0e-3
   scheduler: cosine
   patience: 20
 
