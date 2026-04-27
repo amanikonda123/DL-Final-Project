@@ -56,13 +56,13 @@ def build_model(name: str, config: dict, feature_dims: dict) -> nn.Module:
     
     if name == "gatv2":
         return GATv2(
-            node_dim   = feature_dims["node_dim"],
-            hidden_dim = config["model"]["hidden_dim"],
-            num_layers = config["model"]["num_layers"],
-            heads      = config["model"]["heads"],
-            edge_dim   = config["model"].get("edge_dim", 4),
-            dropout    = config["model"].get("dropout", 0.0),
-            share_weights = config["model"].get("share_weights", False),
+            node_dim=feature_dims["node_dim"],
+            hidden_dim=mcfg["hidden_dim"],
+            num_layers=mcfg["num_layers"],
+            heads=mcfg.get("heads", 4),
+            edge_dim=mcfg.get("edge_dim", 4),
+            dropout=mcfg.get("dropout", 0.0),
+            share_weights=mcfg.get("share_weights", False),
         )
 
-    raise ValueError(f"Unknown model: '{name}'. Available: gcn, gat, schnet, gatv2")
+    raise ValueError(f"Unknown model: '{name}'. Available: gcn, gat, gatv2, schnet")

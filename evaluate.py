@@ -52,6 +52,8 @@ def evaluate_model(config, checkpoint_path, device="cpu", output_dir="outputs",
 
             if model_name == "schnet":
                 pred = model(batch.z, batch.pos, batch.batch)
+            elif model_name == "gatv2":
+                pred = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch)
             else:
                 pred = model(batch.x, batch.edge_index, batch.batch)
 

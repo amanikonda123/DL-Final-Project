@@ -41,8 +41,10 @@ class GCN(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x, edge_index, batch):
+    def _encode(self, x, edge_index, batch):
+        """Shared encoder logic. Returns graph embedding and per-layer node embeddings."""
         x = self.node_encoder(x)
+        layer_embeds = [x.detach()]
         for conv, bn in zip(self.convs, self.bns):
             residual = x
             x = conv(x, edge_index)
@@ -50,7 +52,18 @@ class GCN(nn.Module):
             x = torch.relu(x)
             x = self.dropout(x)
             x = x + residual
+            layer_embeds.append(x.detach())
         x_mean = global_mean_pool(x, batch)
         x_max = global_max_pool(x, batch)
         x_graph = torch.cat([x_mean, x_max], dim=-1)
+        return x_graph, layer_embeds
+
+    def forward(self, x, edge_index, batch):
+        x_graph, _ = self._encode(x, edge_index, batch)
         return self.head(x_graph).squeeze(-1)
+
+    @torch.no_grad()
+    def get_embedding(self, x, edge_index, batch):
+        """Return (graph_embedding, list_of_node_embeddings_per_layer)."""
+        self.eval()
+        return self._encode(x, edge_index, batch)
