@@ -74,6 +74,11 @@ def train_model(config, device="cpu", output_dir="outputs", data_root="./data/qm
     """
     device = torch.device(device)
 
+    # torch_cluster's radius_graph (used by SchNet) does not support MPS
+    if model_name == "schnet" and device.type == "mps":
+        print("[train] Warning: torch_cluster does not support MPS — falling back to CPU for SchNet.")
+        device = torch.device("cpu")
+
     feature_mode = config["dataset"].get("feature_mode", "topology")
     feature_dims = get_feature_dims(feature_mode)
 
@@ -173,7 +178,7 @@ def _get_default_device():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train a GNN model on QM9.")
     parser.add_argument("--config", default="config/gcn.yaml", help="Path to YAML config file.")
-    parser.add_argument("--model",  default="gcn", choices=["gcn", "gat", "schnet"],
+    parser.add_argument("--model",  default="gcn", choices=["gcn", "gat", "gatv2", "schnet"],
                         help="Model architecture to train.")
     parser.add_argument("--device",     default=None,      help="Override device: cpu, cuda, or mps.")
     parser.add_argument("--output-dir", default="outputs", help="Directory for logs/checkpoints.")

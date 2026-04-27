@@ -60,6 +60,8 @@ def select_features(data, mode: str = "topology"):
     elif mode == "geometry":
         # Full node features + 3D positions (SchNet uses pos directly)
         data.x = data.x[:, :5].float()
+        if hasattr(data, "z") and data.z is not None:
+            data.z = data.z.long()
         data.pos = data.pos.float()              # [N, 3]  required for SchNet
         data.edge_attr = None                    # SchNet recomputes from distances
 

@@ -34,6 +34,11 @@ def evaluate_model(config, checkpoint_path, device="cpu", output_dir="outputs",
     """
     device = torch.device(device)
 
+    # torch_cluster's radius_graph does not support MPS
+    if model_name == "schnet" and device.type == "mps":
+        print("[eval] Warning: torch_cluster does not support MPS — falling back to CPU for SchNet.")
+        device = torch.device("cpu")
+
     feature_mode = config["dataset"].get("feature_mode", "topology")
     feature_dims = get_feature_dims(feature_mode)
 
@@ -52,6 +57,8 @@ def evaluate_model(config, checkpoint_path, device="cpu", output_dir="outputs",
 
             if model_name == "schnet":
                 pred = model(batch.z, batch.pos, batch.batch)
+            elif model_name == "gatv2":
+                pred = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch)
             else:
                 pred = model(batch.x, batch.edge_index, batch.batch)
 
@@ -88,16 +95,30 @@ def evaluate_model(config, checkpoint_path, device="cpu", output_dir="outputs",
 
 
 if __name__ == "__main__":
-    with open("config/default.yaml") as f:
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Evaluate a trained GNN on the QM9 test set.")
+    parser.add_argument("--config",     required=True,               help="Path to YAML config used for training.")
+    parser.add_argument("--model",      required=True,               choices=["gcn", "gat", "schnet"])
+    parser.add_argument("--checkpoint", required=True,               help="Path to .pt checkpoint file.")
+    parser.add_argument("--device",     default=None,                help="cpu | cuda | mps")
+    parser.add_argument("--output-dir", default="outputs",           help="Directory for saving predictions.")
+    parser.add_argument("--data-root",  default="./data/qm9_raw",   help="QM9 data directory.")
+    args = parser.parse_args()
+
+    with open(args.config) as f:
         cfg = yaml.safe_load(f)
 
-    if torch.cuda.is_available():
+    if args.device:
+        device = args.device
+    elif torch.cuda.is_available():
         device = "cuda"
     elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
         device = "mps"
     else:
         device = "cpu"
-    ckpt = "outputs/checkpoints/gcn_best.pt"
 
-    result = evaluate_model(cfg, ckpt, device=device)
+    result = evaluate_model(cfg, args.checkpoint, device=device,
+                            output_dir=args.output_dir, data_root=args.data_root,
+                            model_name=args.model)
     print(f"\nTest MAE = {result['test_mae']:.6f}, RMSE = {result['test_rmse']:.6f}")

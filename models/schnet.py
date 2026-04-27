@@ -45,3 +45,21 @@ class QM9SchNet(nn.Module):
     def forward(self, z, pos, batch):
         pred = self.model(z=z, pos=pos, batch=batch)
         return pred.view(-1)
+
+    @torch.no_grad()
+    def get_embedding(self, z, pos, batch):
+        """
+        Return (graph_embedding, []) using a forward hook on the readout layer.
+        SchNet's internals are opaque so we only get the graph-level vector.
+        """
+        self.eval()
+        captured = {}
+
+        def _hook(module, inp, out):
+            captured["emb"] = inp[0].detach()
+
+        handle = self.model.lin2.register_forward_hook(_hook)
+        self.model(z=z, pos=pos, batch=batch)
+        handle.remove()
+
+        return captured["emb"], []
