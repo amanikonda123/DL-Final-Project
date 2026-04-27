@@ -13,7 +13,7 @@ training:
 
 model:
   hidden_channels: 128   # embedding/filter size — keep at 128
-  num_interactions: 3    # increase to 6 on Colab
+  num_interactions: 6    # increase to 6 on Colab
   num_filters: 128
   num_gaussians: 50      # physics-motivated, don't tune
   cutoff: 10.0           # angstrom, don't tune
