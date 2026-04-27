@@ -10,9 +10,4 @@ utils/__pycache__/
 venv/
 
 # PyTorch Geometric QM9 dataset cache
-data/
-
-# Generated training artifacts
-outputs/checkpoints/
-outputs/logs/
-outputs/results/
+data/qm9_raw
