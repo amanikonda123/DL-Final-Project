@@ -8,7 +8,7 @@ import torch.nn as nn
 from .gcn import GCN
 from .gat import GAT
 from .schnet import QM9SchNet
-
+from .gatv2 import GATv2
 
 def build_model(name: str, config: dict, feature_dims: dict) -> nn.Module:
     """
@@ -53,5 +53,16 @@ def build_model(name: str, config: dict, feature_dims: dict) -> nn.Module:
             readout=mcfg.get("readout", "add"),
             dipole=mcfg.get("dipole", target_idx == 0),
         )
+    
+    if name == "gatv2":
+        return GATv2(
+            node_dim   = feature_dims["node_dim"],
+            hidden_dim = config["model"]["hidden_dim"],
+            num_layers = config["model"]["num_layers"],
+            heads      = config["model"]["heads"],
+            edge_dim   = config["model"].get("edge_dim", 4),
+            dropout    = config["model"].get("dropout", 0.0),
+            share_weights = config["model"].get("share_weights", False),
+        )
 
-    raise ValueError(f"Unknown model: '{name}'. Available: gcn, gat, schnet")
+    raise ValueError(f"Unknown model: '{name}'. Available: gcn, gat, schnet, gatv2")
