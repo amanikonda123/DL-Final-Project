@@ -17,7 +17,7 @@ from utils.metrics import mae, rmse
 
 
 def evaluate_model(config, checkpoint_path, device="cpu", output_dir="outputs",
-                   data_root="./data/qm9_raw", model_name="gcn"):
+                   data_root="./data/qm9_raw", model_name="gcn", loaders=None):
     """
     Evaluate a trained model on the test set.
 
@@ -42,7 +42,12 @@ def evaluate_model(config, checkpoint_path, device="cpu", output_dir="outputs",
     feature_mode = config["dataset"].get("feature_mode", "topology")
     feature_dims = get_feature_dims(feature_mode)
 
-    _, _, test_loader, normalizer = get_dataloaders(config, root=data_root)
+    # _, _, test_loader, normalizer = get_dataloaders(config, root=data_root)
+
+    if loaders is not None:
+        test_loader, normalizer = loaders
+    else:   
+        _, _, test_loader, normalizer = get_dataloaders(config, root=data_root)
 
     model = build_model(model_name, config, feature_dims).to(device)
     model.load_state_dict(torch.load(checkpoint_path, map_location=device, weights_only=True))
@@ -99,7 +104,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Evaluate a trained GNN on the QM9 test set.")
     parser.add_argument("--config",     required=True,               help="Path to YAML config used for training.")
-    parser.add_argument("--model",      required=True,               choices=["gcn", "gat", "schnet"])
+    parser.add_argument("--model",      required=True,               choices=["gcn", "gat", "schnet", "gatv2"])
     parser.add_argument("--checkpoint", required=True,               help="Path to .pt checkpoint file.")
     parser.add_argument("--device",     default=None,                help="cpu | cuda | mps")
     parser.add_argument("--output-dir", default="outputs",           help="Directory for saving predictions.")
