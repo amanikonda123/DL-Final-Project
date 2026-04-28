@@ -5,11 +5,11 @@ dataset:
   feature_mode: geometry
 
 training:
-  epochs: 100
+  epochs: 150
   batch_size: 32
-  lr: 5.0e-4
+  lr: 3.0e-4
   scheduler: cosine
-  patience: 20
+  patience: 30
 
 model:
   hidden_channels: 128
