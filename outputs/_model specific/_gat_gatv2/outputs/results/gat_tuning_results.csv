@@ -1,0 +1,3 @@
+trial_id,hidden_dim,num_layers,heads,dropout,lr,best_val_mae,checkpoint
+gat_trial_000,128,6,8,0.0,0.001,126.53865814208984,/content/drive/MyDrive/gnn_qm9/outputs/checkpoints/tuning/gat/gat_trial_000_best.pt
+gat_trial_001,128,4,8,0.0,0.001,137.74671936035156,/content/drive/MyDrive/gnn_qm9/outputs/checkpoints/tuning/gat/gat_trial_001_best.pt

@@ -1,0 +1,3 @@
+trial_id,hidden_dim,num_layers,heads,dropout,lr,share_weights,best_val_mae,checkpoint
+gatv2_trial_000,128,4,4,0.0,0.001,False,76.84883880615234,/content/drive/MyDrive/gnn_qm9/outputs/checkpoints/tuning/gatv2/gatv2_trial_000_best.pt
+gatv2_trial_001,128,6,8,0.0,0.001,False,37.401954650878906,/content/drive/MyDrive/gnn_qm9/outputs/checkpoints/tuning/gatv2/gatv2_trial_001_best.pt

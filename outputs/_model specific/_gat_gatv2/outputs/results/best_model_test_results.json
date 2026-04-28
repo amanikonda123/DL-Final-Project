@@ -1,0 +1,31 @@
+{
+  "gat": {
+    "config": {
+      "trial_id": "gat_trial_000",
+      "hidden_dim": 128,
+      "num_layers": 6,
+      "heads": 8,
+      "dropout": 0.0,
+      "lr": 0.001,
+      "best_val_mae": 126.53865814208984,
+      "checkpoint": "/content/drive/MyDrive/gnn_qm9/outputs/checkpoints/tuning/gat/gat_trial_000_best.pt"
+    },
+    "test_mae": 131.1667938232422,
+    "test_rmse": 524.2607891116786
+  },
+  "gatv2": {
+    "config": {
+      "trial_id": "gatv2_trial_001",
+      "hidden_dim": 128,
+      "num_layers": 6,
+      "heads": 8,
+      "dropout": 0.0,
+      "lr": 0.001,
+      "share_weights": false,
+      "best_val_mae": 37.401954650878906,
+      "checkpoint": "/content/drive/MyDrive/gnn_qm9/outputs/checkpoints/tuning/gatv2/gatv2_trial_001_best.pt"
+    },
+    "test_mae": 36.470272064208984,
+    "test_rmse": 283.4397808618261
+  }
+}
