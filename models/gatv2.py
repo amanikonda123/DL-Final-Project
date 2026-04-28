@@ -112,3 +112,18 @@ class GATv2(nn.Module):
         """Return (graph_embedding, list_of_node_embeddings_per_layer)."""
         self.eval()
         return self._encode(x, edge_index, edge_attr, batch)
+
+    @torch.no_grad()
+    def get_attention_weights(self, x, edge_index, edge_attr, batch):
+        """Return list of (edge_index, attention_weights) per layer."""
+        self.eval()
+        attn_list = []
+        for conv, bn in zip(self.convs, self.bns):
+            x, (ei, alpha) = conv(
+                x, edge_index, edge_attr=edge_attr,
+                return_attention_weights=True,
+            )
+            x = bn(x)
+            x = torch.relu(x)
+            attn_list.append((ei, alpha.detach()))
+        return attn_list
