@@ -2,7 +2,7 @@ dataset:
   target: 7
   split: [0.8, 0.1, 0.1]
   seed: 42
-  feature_mode: topology        # keeps node [N,5] and edge_attr [E,4] — both used by GATv2
+  feature_mode: full        # keeps node [N,5] and edge_attr [E,4] — both used by GATv2
 
 training:
   epochs: 200
