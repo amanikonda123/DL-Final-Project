@@ -90,12 +90,25 @@ class GATv2(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x, edge_index, edge_attr, batch):
+    def _encode(self, x, edge_index, edge_attr, batch):
+        """Shared encoder logic. Returns graph embedding and per-layer node embeddings."""
+        layer_embeds = []
         for conv, bn in zip(self.convs, self.bns):
             x = conv(x, edge_index, edge_attr=edge_attr)
             x = bn(x)
             x = torch.relu(x)
             x = self.dropout(x)
+            layer_embeds.append(x.detach())
 
-        x = global_mean_pool(x, batch)
-        return self.head(x).squeeze(-1)
+        x_graph = global_mean_pool(x, batch)
+        return x_graph, layer_embeds
+
+    def forward(self, x, edge_index, edge_attr, batch):
+        x_graph, _ = self._encode(x, edge_index, edge_attr, batch)
+        return self.head(x_graph).squeeze(-1)
+
+    @torch.no_grad()
+    def get_embedding(self, x, edge_index, edge_attr, batch):
+        """Return (graph_embedding, list_of_node_embeddings_per_layer)."""
+        self.eval()
+        return self._encode(x, edge_index, edge_attr, batch)

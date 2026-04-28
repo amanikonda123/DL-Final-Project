@@ -15,4 +15,4 @@ model:
   hidden_dim: 128
   num_layers: 4
   dropout: 0.0
-  heads: 4
+  heads: 8
