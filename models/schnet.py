@@ -63,3 +63,44 @@ class QM9SchNet(nn.Module):
         handle.remove()
 
         return captured["emb"], []
+
+    @torch.no_grad()
+    def get_interaction_graph(self, z, pos, batch):
+        """
+        Return a visualization-friendly summary of SchNet's geometric interactions.
+
+        The returned edge strengths are the mean filter norms across interaction
+        blocks, which provides a useful proxy for which atom pairs the model is
+        emphasizing during message passing.
+        """
+        self.eval()
+        batch = torch.zeros_like(z) if batch is None else batch
+
+        h = self.model.embedding(z)
+        edge_index, edge_weight = self.model.interaction_graph(pos, batch)
+        edge_attr = self.model.distance_expansion(edge_weight)
+
+        edge_strengths = []
+        for interaction in self.model.interactions:
+            cutoff_term = 0.5 * (
+                torch.cos(edge_weight * torch.pi / interaction.conv.cutoff) + 1.0
+            )
+            filters = interaction.conv.nn(edge_attr) * cutoff_term.view(-1, 1)
+            edge_strengths.append(filters.norm(dim=-1))
+            h = h + interaction(h, edge_index, edge_weight, edge_attr)
+
+        if edge_strengths:
+            edge_strength = torch.stack(edge_strengths, dim=0).mean(dim=0)
+        else:
+            edge_strength = torch.zeros_like(edge_weight)
+
+        atom_strength = h.norm(dim=-1)
+
+        return {
+            "pos": pos.detach(),
+            "edge_index": edge_index.detach(),
+            "edge_weight": edge_weight.detach(),
+            "edge_strength": edge_strength.detach(),
+            "atom_strength": atom_strength.detach(),
+            "batch": batch.detach(),
+        }
