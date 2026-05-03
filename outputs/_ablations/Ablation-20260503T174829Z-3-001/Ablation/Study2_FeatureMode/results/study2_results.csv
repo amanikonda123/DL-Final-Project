@@ -1,0 +1,2 @@
+run_id,model,feature_mode,best_val_mae,params,checkpoint
+gcn_topology,gcn,topology,46.70677947998047,531457,/content/drive/MyDrive/Ablation/Study2_FeatureMode/checkpoints/gcn_topology_best.pt

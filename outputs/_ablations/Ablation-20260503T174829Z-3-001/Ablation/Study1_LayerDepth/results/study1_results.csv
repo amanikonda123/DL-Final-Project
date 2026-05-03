@@ -1,0 +1,10 @@
+run_id,model,num_layers,best_val_mae,best_epoch,params,checkpoint
+gcn_L2,gcn,2,151.75978088378906,49,266241,/content/drive/MyDrive/Ablation/Study1_LayerDepth/checkpoints/gcn_L2_best.pt
+gcn_L6,gcn,6,99.80701446533203,34,531457,/content/drive/MyDrive/Ablation/Study1_LayerDepth/checkpoints/gcn_L6_best.pt
+gcn_L12,gcn,12,65.69642639160156,60,929281,/content/drive/MyDrive/Ablation/Study1_LayerDepth/checkpoints/gcn_L12_best.pt
+gat_L2,gat,2,203.72129821777344,52,135937,/content/drive/MyDrive/Ablation/Study1_LayerDepth/checkpoints/gat_L2_best.pt
+gat_L6,gat,6,74.25591278076172,81,403201,/content/drive/MyDrive/Ablation/Study1_LayerDepth/checkpoints/gat_L6_best.pt
+gat_L12,gat,12,76.16278839111328,62,804097,/content/drive/MyDrive/Ablation/Study1_LayerDepth/checkpoints/gat_L12_best.pt
+gatv2_L2,gatv2,2,150.62469482421875,87,205313,/content/drive/MyDrive/Ablation/Study1_LayerDepth/checkpoints/gatv2_L2_best.pt
+gatv2_L6,gatv2,6,48.8328857421875,96,739841,/content/drive/MyDrive/Ablation/Study1_LayerDepth/checkpoints/gatv2_L6_best.pt
+gatv2_L12,gatv2,12,41.56664276123047,93,1541633,/content/drive/MyDrive/Ablation/Study1_LayerDepth/checkpoints/gatv2_L12_best.pt

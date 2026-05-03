@@ -1,0 +1,5 @@
+run_id,label,model,use_edge_attr,best_val_mae,params,checkpoint
+gcn_no_edges,GCN (no edges),gcn,False,53.19065856933594,531457,/content/drive/MyDrive/Ablation/Study4_EdgeFeatureSelection/checkpoints/gcn_no_edges_best.pt
+gat_no_edges,GAT (no edges),gat,False,68.13182067871094,403201,/content/drive/MyDrive/Ablation/Study4_EdgeFeatureSelection/checkpoints/gat_no_edges_best.pt
+gatv2_no_edges,GATv2 (no edges),gatv2,False,41.211360931396484,733697,/content/drive/MyDrive/Ablation/Study4_EdgeFeatureSelection/checkpoints/gatv2_no_edges_best.pt
+gatv2_with_edges,GATv2 (with edges),gatv2,True,43.334556579589844,739841,/content/drive/MyDrive/Ablation/Study4_EdgeFeatureSelection/checkpoints/gatv2_with_edges_best.pt

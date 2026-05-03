@@ -1,0 +1,3 @@
+run_id,variant,use_graph_structure,best_val_mae,params,checkpoint
+gcn_graph,GCN+Graph,True,80.14017486572266,531457,/content/drive/MyDrive/Ablation/Study3_IdentityAdjacency/checkpoints/gcn_graph_best.pt
+gcn_nograph,GCN-NoGraph,False,273.986083984375,531457,/content/drive/MyDrive/Ablation/Study3_IdentityAdjacency/checkpoints/gcn_nograph_best.pt
