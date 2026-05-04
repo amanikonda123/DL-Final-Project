@@ -1,2 +1,7 @@
 run_id,model,feature_mode,best_val_mae,params,checkpoint
-gcn_topology,gcn,topology,46.70677947998047,531457,/content/drive/MyDrive/Ablation/Study2_FeatureMode/checkpoints/gcn_topology_best.pt
+gcn_topology,gcn,topology,76.90503692626953,531457,/content/drive/MyDrive/Ablation/Study2_FeatureMode/checkpoints/gcn_topology_best.pt
+gat_topology,gat,topology,94.29399871826172,403201,/content/drive/MyDrive/Ablation/Study2_FeatureMode/checkpoints/gat_topology_best.pt
+gatv2_topology,gatv2,topology,62.803077697753906,739841,/content/drive/MyDrive/Ablation/Study2_FeatureMode/checkpoints/gatv2_topology_best.pt
+gcn_full,gcn,full,72.64569854736328,532993,/content/drive/MyDrive/Ablation/Study2_FeatureMode/checkpoints/gcn_full_best.pt
+gat_full,gat,full,65.44441986083984,404737,/content/drive/MyDrive/Ablation/Study2_FeatureMode/checkpoints/gat_full_best.pt
+gatv2_full,gatv2,full,53.62189483642578,742913,/content/drive/MyDrive/Ablation/Study2_FeatureMode/checkpoints/gatv2_full_best.pt
