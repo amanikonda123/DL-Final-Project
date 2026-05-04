@@ -2,7 +2,7 @@ dataset:
   target: 7
   split: [0.8, 0.1, 0.1]
   seed: 42
-  feature_mode: topology
+  feature_mode: full
 
 training:
   epochs: 200
