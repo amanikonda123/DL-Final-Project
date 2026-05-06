@@ -140,20 +140,23 @@ for name, model in MODELS:
     )
     print(f"  {name} done")
 
-fig = plt.figure(figsize=(24, 6))
-gs = GridSpec(1, 5, width_ratios=[1, 1, 1, 1, 0.05], wspace=0.10)
-axes = [fig.add_subplot(gs[0, i]) for i in range(4)]
-cax  = fig.add_subplot(gs[0, 4])
-fig.suptitle("t-SNE of Learned Graph Embeddings — Colored by True $U_0$ (Ha)", y=1.02)
+fig = plt.figure(figsize=(12, 11))
+gs = GridSpec(2, 3, width_ratios=[1, 1, 0.05], wspace=0.15, hspace=0.20)
+order = ["gcn", "gat", "gatv2", "schnet"]
+grid_pos = [(0, 0), (0, 1), (1, 0), (1, 1)]
+sc = None
 
-for ax, name in zip(axes, ["gcn", "gat", "gatv2", "schnet"]):
+for (r, c_idx), name in zip(grid_pos, order):
+    ax = fig.add_subplot(gs[r, c_idx])
     tsne, tgt = tsne_data[name]
     sc = ax.scatter(tsne[:, 0], tsne[:, 1], c=tgt.ravel(), cmap="viridis",
                     s=5, alpha=0.6, rasterized=True)
     ax.set_title(TITLES[name])
     ax.set_xticks([]); ax.set_yticks([])
 
+cax = fig.add_subplot(gs[:, 2])
 fig.colorbar(sc, cax=cax, label="True $U_0$ (Ha)")
+fig.suptitle("t-SNE of Learned Graph Embeddings — Colored by True $U_0$ (Ha)", y=1.01)
 plt.savefig(f"{PLOT_DIR}/tsne_embeddings.png", bbox_inches="tight")
 plt.close()
 print("  Saved tsne_embeddings.png\n")
@@ -217,19 +220,19 @@ def draw_attention(ax, mol, ei, alpha_mean, title_prefix):
     ax.axis("off")
 
 print("── Figure 2: Attention ──")
-fig, axes = plt.subplots(2, 4, figsize=(22, 11))
+fig, axes = plt.subplots(4, 2, figsize=(10, 20))
 fig.suptitle("Attention Weights — Last Layer (edge thickness ∝ attention)\n"
-             "Top: GAT (node-only)  |  Bottom: GATv2 (edge-aware)", y=1.03)
+             "Left: GAT (node-only)  |  Right: GATv2 (edge-aware)", y=1.01)
 
-for col, mol in enumerate(selected):
+for row, mol in enumerate(selected):
     mol_feat = select_features(mol.to(DEVICE), "full")
     gat_attn = gat_model.get_attention_weights(mol_feat.x, mol_feat.edge_index, mol_feat.batch)
     ei_g, al_g = gat_attn[-1]
-    draw_attention(axes[0, col], mol, ei_g, al_g.mean(dim=-1).cpu().numpy(), "GAT")
+    draw_attention(axes[row, 0], mol, ei_g, al_g.mean(dim=-1).cpu().numpy(), "GAT")
     gatv2_attn = gatv2_model.get_attention_weights(
         mol_feat.x, mol_feat.edge_index, mol_feat.edge_attr, mol_feat.batch)
     ei_v, al_v = gatv2_attn[-1]
-    draw_attention(axes[1, col], mol, ei_v, al_v.mean(dim=-1).cpu().numpy(), "GATv2")
+    draw_attention(axes[row, 1], mol, ei_v, al_v.mean(dim=-1).cpu().numpy(), "GATv2")
 
 plt.tight_layout()
 plt.savefig(f"{PLOT_DIR}/gat_attention.png", bbox_inches="tight")
@@ -319,20 +322,27 @@ for name, model in MODELS:
     err_data[name] = collect_errors_by_size(model, loader, norm, name, fm)
     print(f"  {name} done")
 
-fig, axes = plt.subplots(1, 4, figsize=(24, 6))
-fig.suptitle("Prediction Error vs Molecule Size (Number of Atoms)", y=1.02)
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+fig.suptitle("Prediction Error vs Molecule Size (Number of Atoms)", y=1.01)
+order = ["gcn", "gat", "gatv2", "schnet"]
 
-for ax, name in zip(axes, ["gcn", "gat", "gatv2", "schnet"]):
+for ax, name in zip(axes.ravel(), order):
     sz, er = err_data[name]
-    ax.scatter(sz, er, s=4, alpha=0.3, rasterized=True)
-    usizes = sorted(set(sz))
-    bmeans = [np.mean(er[sz == s]) for s in usizes]
-    ax.plot(usizes, bmeans, "r-", linewidth=2.5, label="Mean error")
-    ax.set_xlabel("Number of Atoms")
-    ax.set_ylabel("Absolute Error (Ha)")
+    ymax = np.percentile(er, 98)
+    mask = er <= ymax
+    ax.scatter(sz[mask], er[mask], s=4, alpha=0.3, rasterized=True)
+    usizes = sorted(set(sz[mask]))
+    bmeans = [np.median(er[mask][sz[mask] == s]) for s in usizes]
+    ax.plot(usizes, bmeans, "r-", linewidth=2.5, label="Median error")
+    ax.set_ylim(0, ymax * 1.05)
     ax.set_title(TITLES[name])
     ax.legend()
     ax.grid(alpha=0.3)
+
+for ax in axes[1, :]:
+    ax.set_xlabel("Number of Atoms")
+for ax in axes[:, 0]:
+    ax.set_ylabel("Absolute Error (Ha)")
 
 plt.tight_layout()
 plt.savefig(f"{PLOT_DIR}/error_vs_size.png", bbox_inches="tight")
@@ -375,13 +385,14 @@ all_true = np.concatenate([pred_data[n][1].ravel() for n in pred_data])
 shared_lo = float(all_true.min()) * 1.05   # 5 % padding (values are negative)
 shared_hi = float(all_true.max()) * 0.95
 
-fig = plt.figure(figsize=(24, 6))
-gs = GridSpec(1, 5, width_ratios=[1, 1, 1, 1, 0.05], wspace=0.25)
-axes = [fig.add_subplot(gs[0, i]) for i in range(4)]
-cax  = fig.add_subplot(gs[0, 4])
-fig.suptitle("Predicted vs True $U_0$ — Test Set", y=1.02)
+fig = plt.figure(figsize=(12, 11))
+gs = GridSpec(2, 3, width_ratios=[1, 1, 0.05], wspace=0.20, hspace=0.30)
+order = ["gcn", "gat", "gatv2", "schnet"]
+grid_pos = [(0, 0), (0, 1), (1, 0), (1, 1)]
+sc = None
 
-for i, (ax, name) in enumerate(zip(axes, ["gcn", "gat", "gatv2", "schnet"])):
+for (r, c_idx), name in zip(grid_pos, order):
+    ax = fig.add_subplot(gs[r, c_idx])
     pred, true = pred_data[name]
     err = np.abs(pred.ravel() - true.ravel())
     sc = ax.scatter(true.ravel(), pred.ravel(), c=err, cmap="coolwarm",
@@ -391,16 +402,20 @@ for i, (ax, name) in enumerate(zip(axes, ["gcn", "gat", "gatv2", "schnet"])):
     ax.set_xlim(shared_lo, shared_hi)
     ax.set_ylim(shared_lo, shared_hi)
     ax.set_aspect("equal")
-    ax.set_xlabel("True $U_0$ (Ha)")
-    if i == 0:
-        ax.set_ylabel("Predicted $U_0$ (Ha)")
-    else:
-        ax.set_ylabel("")
-        ax.tick_params(labelleft=False)
     ax.set_title(f"{TITLES[name]}  |  MAE={np.mean(err):.2f}")
     ax.grid(alpha=0.3)
+    if c_idx == 0:
+        ax.set_ylabel("Predicted $U_0$ (Ha)")
+    else:
+        ax.set_ylabel(""); ax.tick_params(labelleft=False)
+    if r == 1:
+        ax.set_xlabel("True $U_0$ (Ha)")
+    else:
+        ax.set_xlabel("")
 
+cax = fig.add_subplot(gs[:, 2])
 fig.colorbar(sc, cax=cax, label="Absolute Error (Ha)")
+fig.suptitle("Predicted vs True $U_0$ — Test Set", y=1.01)
 plt.savefig(f"{PLOT_DIR}/predicted_vs_true.png", bbox_inches="tight")
 plt.close()
 print("  Saved predicted_vs_true.png\n")
